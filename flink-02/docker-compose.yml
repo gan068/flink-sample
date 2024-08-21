@@ -1,0 +1,42 @@
+services:
+  taskmanager:
+    image: ${FLINK_IMAGE}
+    ports:
+      - "${FLINK_TASK_DATA_PORT}:${FLINK_TASK_DATA_PORT}"
+      - "${FLINK_TASK_RPC_PORT}:${FLINK_TASK_RPC_PORT}"
+    command: taskmanager
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 4G
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: 10.5.0.2
+        jobmanager.rpc.port: ${FLINK_JOB_RPC_PORT}
+        blob.server.port: ${FLINK_JOB_BLOB_PORT}
+        taskmanager.numberOfTaskSlots: 15
+        taskmanager.host: 10.5.0.3
+        taskmanager.data.port: ${FLINK_TASK_DATA_PORT}
+        taskmanager.rpc.port: ${FLINK_TASK_RPC_PORT}
+        taskmanager.memory.framework.off-heap.size: 256m
+        # taskmanager.memory.task.off-heap.size: 400mb
+        # taskmanager.memory.process.size: 2g
+        # taskmanager.memory.heap.size: 2g
+        # taskmanager.memory.jvm-metaspace.size: 512m
+        # taskmanager.memory.jvm-overhead.min: 512m
+        # taskmanager.memory.jvm-overhead.max: 1g
+        state.backend: filesystem
+    volumes:
+      - ${FLINK_TASK_JAR}:/opt/flink/usrlib
+      - ${FLINK_TASK_DATA}:/opt/flink/data
+      - ./log4j-console.properties:/opt/flink/conf/log4j-console.properties
+    networks:
+      flink:
+        ipv4_address: 10.5.0.3
+
+networks:
+  flink:
+    external:
+      name: flink

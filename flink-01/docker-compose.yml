@@ -1,0 +1,41 @@
+services:
+  jobmanager:
+    image: ${FLINK_IMAGE}
+    ports:
+      - "${FLINK_JOB_WEB_PORT}:${FLINK_JOB_WEB_PORT}"
+      - "${FLINK_JOB_RPC_PORT}:${FLINK_JOB_RPC_PORT}"
+      - "${FLINK_JOB_BLOB_PORT}:${FLINK_JOB_BLOB_PORT}"
+    command: jobmanager
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 4G
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        rest.port: ${FLINK_JOB_WEB_PORT}
+        jobmanager.rpc.address: 10.5.0.2
+        jobmanager.rpc.port: ${FLINK_JOB_RPC_PORT}
+        blob.server.port: ${FLINK_JOB_BLOB_PORT}
+        parallelism.default: 10
+        # jobmanager.memory.process.size: 3584m
+        # jobmanager.memory.heap.size: 2048m
+        # jobmanager.memory.jvm-metaspace.size: 1024m
+        # jobmanager.memory.jvm-overhead.min: 128m
+        # jobmanager.memory.jvm-overhead.max: 1024m
+        high-availability: none
+        state.backend: filesystem
+    volumes:
+      - ${FLINK_JOB_JAR}:/opt/flink/usrlib
+      - ${FLINK_JOB_DATA}:/opt/flink/data
+      - ./log4j-console.properties:/opt/flink/conf/log4j-console.properties
+    networks:
+      flink:
+        ipv4_address: 10.5.0.2
+
+networks:
+  flink:
+    driver: bridge
+    external:
+      name: flink
